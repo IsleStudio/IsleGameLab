@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { useECS } from '../bindings';
 import { useCurrentScene, useSnakeGame, useSnakeData } from '../hooks';
 import { SnakeUtil } from '../../../gameplay/utils';
@@ -18,6 +18,7 @@ export function SnakeGame(): React.ReactElement | null {
   const currentScene = useCurrentScene();
   const gameData = useSnakeGame();
   const snakeData = useSnakeData();
+  const hasStartedRef = useRef(false);
 
   // 仅在game场景显示
   if (currentScene !== 'game') {
@@ -70,11 +71,17 @@ export function SnakeGame(): React.ReactElement | null {
     };
   }, [handleKeyDown]);
 
-  // 自动开始游戏
+  // 自动开始游戏（仅一次）
   useEffect(() => {
-    if (!gameData.isRunning && !gameData.showGameOver) {
+    if (!hasStartedRef.current && !gameData.isRunning && !gameData.showGameOver) {
       console.log('[SnakeGame] 自动开始游戏');
       SnakeUtil.startGame(ecs);
+      hasStartedRef.current = true;
+    }
+    
+    // 重置标记当游戏结束时
+    if (gameData.showGameOver) {
+      hasStartedRef.current = false;
     }
   }, [ecs, gameData.isRunning, gameData.showGameOver]);
 
