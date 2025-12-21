@@ -20,11 +20,6 @@ export function SnakeGame(): React.ReactElement | null {
   const snakeData = useSnakeData();
   const hasStartedRef = useRef(false);
 
-  // 仅在game场景显示
-  if (currentScene !== 'game') {
-    return null;
-  }
-
   // 键盘控制
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -65,14 +60,18 @@ export function SnakeGame(): React.ReactElement | null {
 
   // 监听键盘事件
   useEffect(() => {
+    if (currentScene !== 'game') return;
+    
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleKeyDown]);
+  }, [handleKeyDown, currentScene]);
 
   // 自动开始游戏（仅一次）
   useEffect(() => {
+    if (currentScene !== 'game') return;
+    
     if (!hasStartedRef.current && !gameData.isRunning && !gameData.showGameOver) {
       console.log('[SnakeGame] 自动开始游戏');
       SnakeUtil.startGame(ecs);
@@ -83,7 +82,12 @@ export function SnakeGame(): React.ReactElement | null {
     if (gameData.showGameOver) {
       hasStartedRef.current = false;
     }
-  }, [ecs, gameData.isRunning, gameData.showGameOver]);
+  }, [ecs, gameData.isRunning, gameData.showGameOver, currentScene]);
+
+  // 仅在game场景显示
+  if (currentScene !== 'game') {
+    return null;
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 p-4">
