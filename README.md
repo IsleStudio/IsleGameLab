@@ -1,10 +1,10 @@
-# 通用游戏开发骨架 (Clean Game Project)
+# 通用游戏开发骨架 (isle ecs game lab)
 
 这是一个基于Next.js 16、TypeScript、PixiJS 8、ECS架构和Tailwind CSS 4的通用游戏开发框架。
 
 ## 技术栈
 
-- **Next.js 16** - React框架，支持Turbopack
+- **Next.js 16** - React 19框架，支持Turbopack
 - **TypeScript** - 类型安全的JavaScript
 - **PixiJS 8** - 2D WebGL渲染引擎
 - **Tailwind CSS 4** - 实用优先的CSS框架
