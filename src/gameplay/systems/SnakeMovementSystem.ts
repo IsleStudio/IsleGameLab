@@ -72,6 +72,12 @@ export class SnakeMovementSystem extends System<[Snake]> {
    * 移动蛇
    */
   private moveSnake(snake: Snake): void {
+    // 安全检查：确保蛇有身体段
+    if (!snake.segments || snake.segments.length === 0) {
+      console.warn('[SnakeMovementSystem] 蛇没有身体段，无法移动');
+      return;
+    }
+
     // 应用下一个方向
     snake.direction = snake.nextDirection;
 

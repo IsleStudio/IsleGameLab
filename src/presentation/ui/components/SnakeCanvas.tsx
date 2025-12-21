@@ -59,8 +59,14 @@ export function SnakeCanvas(): React.ReactElement {
     }
 
     // 绘制蛇
-    if (snakeData && snakeData.segments.length > 0) {
+    if (snakeData && snakeData.segments && snakeData.segments.length > 0) {
       snakeData.segments.forEach((segment, index) => {
+        // 安全检查：确保segment有x和y属性
+        if (segment === undefined || segment.x === undefined || segment.y === undefined) {
+          console.warn('[SnakeCanvas] 跳过无效的蛇段');
+          return;
+        }
+
         // 头部更亮
         if (index === 0) {
           ctx.fillStyle = '#10b981'; // green-500

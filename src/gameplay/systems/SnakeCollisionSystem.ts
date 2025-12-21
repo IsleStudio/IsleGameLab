@@ -23,6 +23,12 @@ export class SnakeCollisionSystem extends System<[Snake, Food, GameScore]> {
         continue;
       }
 
+      // 安全检查：确保蛇有身体段
+      if (!snake.segments || snake.segments.length === 0) {
+        console.warn('[SnakeCollisionSystem] 蛇没有身体段，跳过');
+        continue;
+      }
+
       const head = snake.segments[0];
 
       // 检查是否吃到食物
