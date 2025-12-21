@@ -18,19 +18,14 @@ export class GameOverSystem extends System<[Snake, GameScore]> {
     const leaderboardRes = this.res(LeaderboardResource);
     const userSession = this.res(UserSession);
 
-    // 检查是否有游戏刚刚结束
+    // 检查是否有游戏刚刚结束且需要记录成绩
     for (const [snake, score] of components) {
-      // 如果蛇死亡且生命为0，记录到榜单
-      if (!snake.isAlive && score.lives === 0 && snakeGameRes.showGameOver) {
-        // 只记录一次
-        if (!snakeGameRes.isGameRunning) {
-          const playerName = userSession.username || 'Anonymous';
-          leaderboardRes.addEntry(playerName, score.score, score.survivalTime);
-          console.log(`[GameOverSystem] 记录成绩: ${playerName} - 得分:${score.score} 时间:${score.survivalTime}s`);
-          
-          // 标记已处理，避免重复记录
-          snakeGameRes.isGameRunning = false;
-        }
+      // 如果蛇死亡、生命为0、显示游戏结束界面且未记录成绩
+      if (!snake.isAlive && score.lives === 0 && snakeGameRes.showGameOver && !snakeGameRes.hasRecordedScore) {
+        const playerName = userSession.username || 'Anonymous';
+        leaderboardRes.addEntry(playerName, score.score, score.survivalTime);
+        snakeGameRes.hasRecordedScore = true; // 标记已记录，避免重复
+        console.log(`[GameOverSystem] 记录成绩: ${playerName} - 得分:${score.score} 时间:${score.survivalTime}s`);
       }
     }
 

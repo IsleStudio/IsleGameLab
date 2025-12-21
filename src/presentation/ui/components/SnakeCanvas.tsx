@@ -71,16 +71,21 @@ export function SnakeCanvas(): React.ReactElement {
         const x = segment.x * cellWidth;
         const y = segment.y * cellHeight;
 
-        // 绘制圆角矩形
+        // 绘制圆角矩形（使用兼容性更好的方式）
         const radius = Math.min(cellWidth, cellHeight) * 0.15;
+        const rectX = x + cellWidth * 0.05;
+        const rectY = y + cellHeight * 0.05;
+        const rectW = cellWidth * 0.9;
+        const rectH = cellHeight * 0.9;
+
         ctx.beginPath();
-        ctx.roundRect(
-          x + cellWidth * 0.05,
-          y + cellHeight * 0.05,
-          cellWidth * 0.9,
-          cellHeight * 0.9,
-          radius
-        );
+        // 检查roundRect是否可用，否则使用普通矩形
+        if (typeof ctx.roundRect === 'function') {
+          ctx.roundRect(rectX, rectY, rectW, rectH, radius);
+        } else {
+          // 回退到普通矩形
+          ctx.rect(rectX, rectY, rectW, rectH);
+        }
         ctx.fill();
       });
     }

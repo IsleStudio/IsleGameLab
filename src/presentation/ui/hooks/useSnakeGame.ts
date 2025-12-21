@@ -23,7 +23,7 @@ export interface SnakeGameData {
 export interface SnakeData {
   segments: SnakeSegment[];
   isAlive: boolean;
-  entityId: any;
+  entityId: any; // Entity对象类型，避免循环依赖使用any
 }
 
 /**
@@ -85,7 +85,7 @@ export function useSnakeData(): SnakeData | null {
   return {
     segments: snake.segments,
     isAlive: snake.isAlive,
-    entityId: (snake as any).entity,
+    entityId: (snake as any).entity, // Entity对象
   };
 }
 

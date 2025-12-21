@@ -54,6 +54,9 @@ export class SnakeGameResource extends Resource {
   /** 是否显示游戏结束界面 */
   public showGameOver: boolean = false;
 
+  /** 是否已记录榜单（防止重复记录） */
+  public hasRecordedScore: boolean = false;
+
   /**
    * 开始新游戏
    */
@@ -63,6 +66,7 @@ export class SnakeGameResource extends Resource {
     this.lastMoveTime = Date.now();
     this.gameStartTime = Date.now();
     this.showGameOver = false;
+    this.hasRecordedScore = false;
   }
 
   /**
@@ -82,6 +86,7 @@ export class SnakeGameResource extends Resource {
     this.lastMoveTime = 0;
     this.gameStartTime = 0;
     this.showGameOver = false;
+    this.hasRecordedScore = false;
   }
 }
 
