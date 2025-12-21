@@ -18,3 +18,19 @@ export type { GameStateView } from './useGameState';
 // UserSession Hook
 export { useUserSession, useIsLoggedIn, useUsername } from './useUserSession';
 export type { UserSessionView } from './useUserSession';
+
+// Snake Game Hooks
+export { 
+  useSnakeGame, 
+  useSnakeData, 
+  useFoodData, 
+  useGameScore, 
+  useLeaderboard,
+} from './useSnakeGame';
+export type {
+  SnakeGameData,
+  SnakeData,
+  FoodData,
+  GameScoreData,
+  LeaderboardEntryData,
+} from './useSnakeGame';

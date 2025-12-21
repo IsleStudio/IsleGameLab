@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { GameWorld } from '../server/GameWorld';
 import { TickSystem } from '../server/TickSystem';
 import { ECSProvider, useECSUpdate } from '../presentation/ui/bindings';
-import { MainMenu, LoginForm } from '../presentation/ui/components';
+import { MainMenu, LoginForm, SnakeGame } from '../presentation/ui/components';
 import type { ECS } from '../core/ecs';
 
 // 全局单例，避免在React渲染周期中创建
@@ -110,6 +110,7 @@ function GameAppInner(): React.ReactElement {
     <div className="game-container">
       <MainMenu />
       <LoginForm />
+      <SnakeGame />
     </div>
   );
 }
