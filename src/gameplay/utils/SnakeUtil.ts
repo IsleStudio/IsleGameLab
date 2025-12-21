@@ -11,8 +11,7 @@ export class SnakeUtil {
    * 开始新游戏
    */
   public static startGame(ecs: ECS): void {
-    const entity = ecs.spawnEntity();
-    ecs.addComponent(entity, new StartSnakeGameIntent());
+    ecs.spawn().insert(new StartSnakeGameIntent());
     console.log('[SnakeUtil] 发送开始游戏Intent');
   }
 
@@ -20,16 +19,14 @@ export class SnakeUtil {
    * 改变蛇的移动方向
    */
   public static changeDirection(ecs: ECS, entityId: number, direction: Direction): void {
-    const entity = ecs.spawnEntity();
-    ecs.addComponent(entity, new SnakeDirectionIntent(entityId, direction));
+    ecs.spawn().insert(new SnakeDirectionIntent(entityId, direction));
   }
 
   /**
    * 重新开始游戏
    */
   public static restartGame(ecs: ECS): void {
-    const entity = ecs.spawnEntity();
-    ecs.addComponent(entity, new RestartSnakeGameIntent());
+    ecs.spawn().insert(new RestartSnakeGameIntent());
     console.log('[SnakeUtil] 发送重新开始游戏Intent');
   }
 
@@ -37,8 +34,7 @@ export class SnakeUtil {
    * 返回主菜单
    */
   public static backToMenu(ecs: ECS): void {
-    const entity = ecs.spawnEntity();
-    ecs.addComponent(entity, new BackToMenuIntent());
+    ecs.spawn().insert(new BackToMenuIntent());
     console.log('[SnakeUtil] 发送返回主菜单Intent');
   }
 

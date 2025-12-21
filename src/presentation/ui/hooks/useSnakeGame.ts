@@ -1,7 +1,7 @@
 'use client';
 
 import { useECSResource } from './useECSResource';
-import { useECSQuery } from './useECSQuery';
+import { useECSQueryMultiple, useECSQuery } from './useECSQuery';
 import { SnakeGameResource, LeaderboardResource } from '../../../gameplay/resources/SnakeGameResource';
 import { Snake, Food, GameScore, SnakeGameActive, type SnakeSegment } from '../../../gameplay/components/snake';
 
@@ -23,7 +23,7 @@ export interface SnakeGameData {
 export interface SnakeData {
   segments: SnakeSegment[];
   isAlive: boolean;
-  entityId: number;
+  entityId: any;
 }
 
 /**
@@ -74,23 +74,18 @@ export function useSnakeGame(): SnakeGameData {
  * useSnakeData - 获取当前蛇的数据
  */
 export function useSnakeData(): SnakeData | null {
-  const entities = useECSQuery([SnakeGameActive, Snake]);
+  const snakes = useECSQuery(Snake);
 
-  if (entities.length === 0) {
+  if (snakes.length === 0) {
     return null;
   }
 
-  const entity = entities[0];
-  const snake = entity.components.get(Snake);
-
-  if (!snake) {
-    return null;
-  }
+  const snake = snakes[0];
 
   return {
     segments: snake.segments,
     isAlive: snake.isAlive,
-    entityId: entity.id,
+    entityId: (snake as any).entity,
   };
 }
 
@@ -98,18 +93,13 @@ export function useSnakeData(): SnakeData | null {
  * useFoodData - 获取当前食物的数据
  */
 export function useFoodData(): FoodData | null {
-  const entities = useECSQuery([SnakeGameActive, Food]);
+  const foods = useECSQuery(Food);
 
-  if (entities.length === 0) {
+  if (foods.length === 0) {
     return null;
   }
 
-  const entity = entities[0];
-  const food = entity.components.get(Food);
-
-  if (!food) {
-    return null;
-  }
+  const food = foods[0];
 
   return {
     x: food.x,
@@ -121,18 +111,13 @@ export function useFoodData(): FoodData | null {
  * useGameScore - 获取游戏得分数据
  */
 export function useGameScore(): GameScoreData | null {
-  const entities = useECSQuery([SnakeGameActive, GameScore]);
+  const scores = useECSQuery(GameScore);
 
-  if (entities.length === 0) {
+  if (scores.length === 0) {
     return null;
   }
 
-  const entity = entities[0];
-  const score = entity.components.get(GameScore);
-
-  if (!score) {
-    return null;
-  }
+  const score = scores[0];
 
   return {
     score: score.score,

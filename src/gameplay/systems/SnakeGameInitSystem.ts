@@ -1,5 +1,5 @@
 import { System } from '../../core/ecs/System';
-import type { ECS } from '../../core/ecs/World';
+import type { Component } from '../../core/ecs/Component';
 import { Snake, Food, GameScore, SnakeGameActive, Direction, type SnakeSegment } from '../components/snake';
 import { SnakeGameResource } from '../resources/SnakeGameResource';
 import { StartSnakeGameIntent, RestartSnakeGameIntent } from '../intents/snake';
@@ -8,64 +8,67 @@ import { StartSnakeGameIntent, RestartSnakeGameIntent } from '../intents/snake';
  * SnakeGameInitSystem - 蛇游戏初始化系统
  * 处理开始新游戏和重新开始游戏的Intent
  */
-export class SnakeGameInitSystem extends System {
-  public run(ecs: ECS): void {
-    const snakeGameRes = ecs.getResource(SnakeGameResource);
-    if (!snakeGameRes) {
-      console.error('[SnakeGameInitSystem] SnakeGameResource不存在');
-      return;
-    }
+export class SnakeGameInitSystem extends System<Component[]> {
+  public componentsRequired = [];
+  public isGlobal = true;
+
+  public update(components: Iterable<Component[]>): void {
+    const snakeGameRes = this.res(SnakeGameResource);
 
     // 处理开始新游戏Intent
-    for (const entity of ecs.query(StartSnakeGameIntent)) {
+    const startIntents = Array.from(this.query(StartSnakeGameIntent));
+    for (const intent of startIntents) {
+      if (intent.processed) continue;
+
       console.log('[SnakeGameInitSystem] 处理StartSnakeGameIntent');
 
       // 如果有旧游戏，清理旧游戏实体
       if (snakeGameRes.currentGameEntity !== null) {
         const oldEntity = snakeGameRes.currentGameEntity;
-        if (ecs.hasEntity(oldEntity)) {
-          ecs.despawnEntity(oldEntity);
-        }
+        this.ecs.despawn(oldEntity);
       }
 
       // 创建新游戏实体
-      const gameEntity = this.createNewGame(ecs, snakeGameRes);
-      snakeGameRes.startGame(gameEntity);
+      const gameEntity = this.createNewGame(snakeGameRes);
+      snakeGameRes.startGame(gameEntity.id());
 
-      console.log('[SnakeGameInitSystem] 新游戏已创建，实体ID:', gameEntity);
+      console.log('[SnakeGameInitSystem] 新游戏已创建，实体ID:', gameEntity.id());
+      intent.processed = true;
     }
 
     // 处理重新开始游戏Intent
-    for (const entity of ecs.query(RestartSnakeGameIntent)) {
+    const restartIntents = Array.from(this.query(RestartSnakeGameIntent));
+    for (const intent of restartIntents) {
+      if (intent.processed) continue;
+
       console.log('[SnakeGameInitSystem] 处理RestartSnakeGameIntent');
 
       // 清理旧游戏实体
       if (snakeGameRes.currentGameEntity !== null) {
         const oldEntity = snakeGameRes.currentGameEntity;
-        if (ecs.hasEntity(oldEntity)) {
-          ecs.despawnEntity(oldEntity);
-        }
+        this.ecs.despawn(oldEntity);
       }
 
       // 创建新游戏实体
-      const gameEntity = this.createNewGame(ecs, snakeGameRes);
-      snakeGameRes.startGame(gameEntity);
+      const gameEntity = this.createNewGame(snakeGameRes);
+      snakeGameRes.startGame(gameEntity.id());
 
-      console.log('[SnakeGameInitSystem] 游戏已重新开始，实体ID:', gameEntity);
+      console.log('[SnakeGameInitSystem] 游戏已重新开始，实体ID:', gameEntity.id());
+      intent.processed = true;
     }
   }
 
   /**
    * 创建新游戏实体
    */
-  private createNewGame(ecs: ECS, snakeGameRes: SnakeGameResource): number {
+  private createNewGame(snakeGameRes: SnakeGameResource): any {
     const config = snakeGameRes.config;
 
     // 创建游戏实体
-    const entity = ecs.spawnEntity();
+    const entity = this.ecs.spawn();
 
     // 添加SnakeGameActive标签
-    ecs.addComponent(entity, new SnakeGameActive());
+    entity.insert(new SnakeGameActive());
 
     // 创建蛇
     const snake = new Snake();
@@ -84,11 +87,11 @@ export class SnakeGameInitSystem extends System {
       });
     }
 
-    ecs.addComponent(entity, snake);
+    entity.insert(snake);
 
     // 创建食物
     const food = this.spawnFood(config.gridWidth, config.gridHeight, snake.segments);
-    ecs.addComponent(entity, food);
+    entity.insert(food);
 
     // 创建游戏得分
     const score = new GameScore();
@@ -97,7 +100,7 @@ export class SnakeGameInitSystem extends System {
     score.survivalTime = 0;
     score.speedMultiplier = 1.0;
     score.lives = config.initialLives;
-    ecs.addComponent(entity, score);
+    entity.insert(score);
 
     return entity;
   }

@@ -1,16 +1,17 @@
 import { System } from '../../core/ecs/System';
-import type { ECS } from '../../core/ecs/World';
-import { Snake, GameScore, SnakeGameActive } from '../components/snake';
+import { Snake, GameScore } from '../components/snake';
 import { SnakeGameResource } from '../resources/SnakeGameResource';
 
 /**
  * GameSpeedSystem - 游戏速度控制系统
  * 根据游戏时间自动提升游戏速度和更新存活时间
  */
-export class GameSpeedSystem extends System {
-  public run(ecs: ECS): void {
-    const snakeGameRes = ecs.getResource(SnakeGameResource);
-    if (!snakeGameRes || !snakeGameRes.isGameRunning) {
+export class GameSpeedSystem extends System<[Snake, GameScore]> {
+  public componentsRequired = [Snake, GameScore];
+
+  public update(components: Iterable<[Snake, GameScore]>): void {
+    const snakeGameRes = this.res(SnakeGameResource);
+    if (!snakeGameRes.isGameRunning) {
       return;
     }
 
@@ -18,11 +19,8 @@ export class GameSpeedSystem extends System {
     const now = Date.now();
 
     // 更新所有活跃游戏的速度和时间
-    for (const entity of ecs.query(SnakeGameActive, Snake, GameScore)) {
-      const snake = ecs.getComponent(entity, Snake);
-      const score = ecs.getComponent(entity, GameScore);
-
-      if (!snake || !score || !snake.isAlive) {
+    for (const [snake, score] of components) {
+      if (!snake.isAlive) {
         continue;
       }
 

@@ -1,5 +1,4 @@
 import { System } from '../../core/ecs/System';
-import type { ECS } from '../../core/ecs/World';
 import { Snake, Food, GameScore, SnakeGameActive, type SnakeSegment } from '../components/snake';
 import { SnakeGameResource } from '../resources/SnakeGameResource';
 
@@ -7,22 +6,20 @@ import { SnakeGameResource } from '../resources/SnakeGameResource';
  * SnakeCollisionSystem - 蛇碰撞检测系统
  * 处理蛇与食物、墙壁、自身的碰撞检测
  */
-export class SnakeCollisionSystem extends System {
-  public run(ecs: ECS): void {
-    const snakeGameRes = ecs.getResource(SnakeGameResource);
-    if (!snakeGameRes || !snakeGameRes.isGameRunning) {
+export class SnakeCollisionSystem extends System<[Snake, Food, GameScore]> {
+  public componentsRequired = [Snake, Food, GameScore];
+
+  public update(components: Iterable<[Snake, Food, GameScore]>): void {
+    const snakeGameRes = this.res(SnakeGameResource);
+    if (!snakeGameRes.isGameRunning) {
       return;
     }
 
     const config = snakeGameRes.config;
 
     // 检查所有活跃的游戏实体
-    for (const entity of ecs.query(SnakeGameActive, Snake, Food, GameScore)) {
-      const snake = ecs.getComponent(entity, Snake);
-      const food = ecs.getComponent(entity, Food);
-      const score = ecs.getComponent(entity, GameScore);
-
-      if (!snake || !food || !score || !snake.isAlive) {
+    for (const [snake, food, score] of components) {
+      if (!snake.isAlive) {
         continue;
       }
 
@@ -30,7 +27,7 @@ export class SnakeCollisionSystem extends System {
 
       // 检查是否吃到食物
       if (head.x === food.x && head.y === food.y) {
-        this.handleFoodCollision(ecs, entity, snake, food, score, config.gridWidth, config.gridHeight);
+        this.handleFoodCollision(snake, food, score, config.gridWidth, config.gridHeight);
         continue; // 吃到食物后跳过死亡检测，给玩家一个frame
       }
 
@@ -46,7 +43,7 @@ export class SnakeCollisionSystem extends System {
         head.y < 0 ||
         head.y >= config.gridHeight
       ) {
-        this.handleDeath(ecs, snake, score, snakeGameRes);
+        this.handleDeath(snake, score, snakeGameRes);
         continue;
       }
 
@@ -54,7 +51,7 @@ export class SnakeCollisionSystem extends System {
       for (let i = 1; i < snake.segments.length; i++) {
         const segment = snake.segments[i];
         if (head.x === segment.x && head.y === segment.y) {
-          this.handleDeath(ecs, snake, score, snakeGameRes);
+          this.handleDeath(snake, score, snakeGameRes);
           break;
         }
       }
@@ -65,8 +62,6 @@ export class SnakeCollisionSystem extends System {
    * 处理食物碰撞
    */
   private handleFoodCollision(
-    ecs: ECS,
-    entity: number,
     snake: Snake,
     food: Food,
     score: GameScore,
@@ -90,7 +85,7 @@ export class SnakeCollisionSystem extends System {
   /**
    * 处理死亡
    */
-  private handleDeath(ecs: ECS, snake: Snake, score: GameScore, snakeGameRes: SnakeGameResource): void {
+  private handleDeath(snake: Snake, score: GameScore, snakeGameRes: SnakeGameResource): void {
     console.log('[SnakeCollisionSystem] 蛇死亡，剩余生命:', score.lives - 1);
 
     score.lives -= 1;
