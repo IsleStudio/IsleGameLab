@@ -36,11 +36,11 @@ export class SnakeCollisionSystem extends System<[Snake, Food, GameScore]> {
         this.handleFoodCollision(snake, food, score, config.gridWidth, config.gridHeight);
         continue; // 吃到食物后跳过死亡检测，给玩家一个frame
       }
-
+      // #TODO 移除尾部（应该在碰撞检测系统中会处理是否吃到食物）目前逻辑被移动到了MovementSystem中
       // 移除尾部（正常移动）
-      if (snake.segments.length > 0) {
-        snake.segments.pop();
-      }
+      //if (snake.segments.length > 0) {
+      //  snake.segments.pop();
+      //}
 
       // 检查是否撞墙
       if (

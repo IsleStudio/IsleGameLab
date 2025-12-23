@@ -72,6 +72,7 @@ export function useSnakeGame(): SnakeGameData {
 
 /**
  * useSnakeData - 获取当前蛇的数据
+ * 每次都返回新对象，确保每帧都触发 useEffect
  */
 export function useSnakeData(): SnakeData | null {
   const snakes = useECSQuery(Snake);
@@ -91,6 +92,7 @@ export function useSnakeData(): SnakeData | null {
 
 /**
  * useFoodData - 获取当前食物的数据
+ * 每次都返回新对象，确保每帧都触发 useEffect
  */
 export function useFoodData(): FoodData | null {
   const foods = useECSQuery(Food);
@@ -109,6 +111,7 @@ export function useFoodData(): FoodData | null {
 
 /**
  * useGameScore - 获取游戏得分数据
+ * 每次都返回新对象，确保每帧都触发 useEffect
  */
 export function useGameScore(): GameScoreData | null {
   const scores = useECSQuery(GameScore);
@@ -129,6 +132,7 @@ export function useGameScore(): GameScoreData | null {
 
 /**
  * useLeaderboard - 获取榜单数据
+ * 每次都返回新数组，确保每帧都触发 useEffect
  */
 export function useLeaderboard(): LeaderboardEntryData[] {
   const leaderboardRes = useECSResource(LeaderboardResource);

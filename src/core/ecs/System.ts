@@ -1,6 +1,7 @@
 import type { Component } from './Component';
 import type { Resource } from './Resource';
 import type { ClassType } from './types';
+import type { ECS } from './World';
 import { ECSError, ErrorSeverity, logger } from '../../lib/errors';
 
 /**
@@ -23,7 +24,7 @@ export abstract class System<T extends Component[] = Component[]> {
   /**
    * ECS (World) 实例被提供给所有系统。
    */
-  public ecs!: any; // 使用any避免循环依赖
+  public ecs!: ECS;
 
   /**
    * 是否为全局系统 (Global System)。

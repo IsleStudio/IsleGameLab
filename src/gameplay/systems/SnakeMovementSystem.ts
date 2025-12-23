@@ -1,6 +1,6 @@
 import { System } from '../../core/ecs/System';
 import type { Component } from '../../core/ecs/Component';
-import { Snake, Direction, SnakeGameActive } from '../components/snake';
+import { Snake, Direction, SnakeGameActive,GameScore } from '../components/snake';
 import { SnakeGameResource } from '../resources/SnakeGameResource';
 import { SnakeDirectionIntent } from '../intents/snake';
 
@@ -102,9 +102,24 @@ export class SnakeMovementSystem extends System<[Snake]> {
 
     // 在头部添加新段
     snake.segments.unshift(newHead);
-
-    // 移除尾部（在碰撞检测系统中会处理是否吃到食物）
+    // #TODO 测试蛇是否正常工作
+    // 打印移动日志
+    console.log('[SnakeMovementSystem] 移动蛇:', {
+      direction: snake.direction,
+      newHead,
+      segments: JSON.parse(JSON.stringify(snake.segments)),
+    });
+    const gameScores = Array.from(this.ecs.getComps(GameScore));
+    if (gameScores.length > 0) {
+      gameScores[0].score += 10;
+    }
+    // 移除尾部（应该在碰撞检测系统中会处理是否吃到食物）
     // 默认移除尾部，如果吃到食物会在碰撞系统中处理
+    // 移除尾部（正常移动）
+    if (snake.segments.length > 0) {
+      snake.segments.pop();
+    }
+
   }
 
   /**
