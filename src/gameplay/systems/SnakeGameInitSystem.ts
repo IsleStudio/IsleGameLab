@@ -24,8 +24,10 @@ export class SnakeGameInitSystem extends System<Component[]> {
 
       // 如果有旧游戏，清理旧游戏实体
       if (snakeGameRes.currentGameEntity !== null) {
-        const oldEntity = snakeGameRes.currentGameEntity;
-        this.ecs.despawn(oldEntity);
+        const oldEntity = this.ecs.getEntityById(snakeGameRes.currentGameEntity);
+        if (oldEntity) {
+          this.ecs.despawnRecursive(oldEntity);
+        }
       }
 
       // 创建新游戏实体
@@ -45,8 +47,10 @@ export class SnakeGameInitSystem extends System<Component[]> {
 
       // 清理旧游戏实体
       if (snakeGameRes.currentGameEntity !== null) {
-        const oldEntity = snakeGameRes.currentGameEntity;
-        this.ecs.despawn(oldEntity);
+        const oldEntity = this.ecs.getEntityById(snakeGameRes.currentGameEntity);
+        if (oldEntity) {
+          this.ecs.despawnRecursive(oldEntity);
+        }
       }
 
       // 创建新游戏实体

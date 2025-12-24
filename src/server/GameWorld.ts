@@ -10,10 +10,12 @@ import {
   SnakeCollisionSystem,
   GameSpeedSystem,
   GameOverSystem,
+  PixiRenderSystem,
 } from '../gameplay/systems';
 import { NavigateIntent } from '../gameplay/intents/ui';
 import { StorageManager } from '../core/persistence';
 import { logger, ECSError, ErrorSeverity } from '../lib/errors';
+import { PixiResource } from '../presentation/resources';
 
 /**
  * 游戏世界管理器 - 管理ECS World的生命周期
@@ -81,6 +83,9 @@ export class GameWorld {
       // 注册榜单资源
       this.ecs.insertResource(new LeaderboardResource());
 
+      // 注册 Pixi 渲染资源
+      this.ecs.insertResource(new PixiResource());
+
       logger.debug('[GameWorld] 资源注册完成');
     } catch (error) {
       const ecsError = new ECSError(
@@ -122,6 +127,10 @@ export class GameWorld {
 
       // Intent清理系统 - 在所有业务系统之后清理已处理的Intent
       this.ecs.addSystem(Stage.Update, new IntentCleanupSystem());
+
+      // PostUpdate阶段 - 渲染系统
+      // Pixi 渲染系统 - 使用 Pixi.js 渲染游戏画面
+      this.ecs.addSystem(Stage.PostUpdate, new PixiRenderSystem());
 
       logger.debug('[GameWorld] 系统注册完成');
     } catch (error) {
@@ -204,6 +213,25 @@ export class GameWorld {
       this.ecs.fixedUpdate();
     } catch (error) {
       logger.error('[GameWorld] 固定更新循环出错', error instanceof Error ? error : undefined, {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  /**
+   * 运行渲染更新阶段（PostUpdate）
+   * 用于渲染系统更新，由 Pixi.js Ticker 驱动
+   */
+  public postUpdate(): void {
+    if (!this.isInitialized) {
+      logger.warn('[GameWorld] 未初始化，无法执行渲染更新');
+      return;
+    }
+
+    try {
+      this.ecs.postUpdate();
+    } catch (error) {
+      logger.error('[GameWorld] 渲染更新循环出错', error instanceof Error ? error : undefined, {
         error: error instanceof Error ? error.message : String(error),
       });
     }

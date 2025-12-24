@@ -7,3 +7,4 @@ export { SnakeMovementSystem } from './SnakeMovementSystem';
 export { SnakeCollisionSystem } from './SnakeCollisionSystem';
 export { GameSpeedSystem } from './GameSpeedSystem';
 export { GameOverSystem } from './GameOverSystem';
+export { PixiRenderSystem } from './PixiRenderSystem';

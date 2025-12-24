@@ -111,4 +111,5 @@ export enum Stage {
   Startup,
   Update,
   FixedUpdate,
+  PostUpdate,  // 渲染更新阶段
 }

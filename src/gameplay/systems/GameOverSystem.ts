@@ -38,8 +38,10 @@ export class GameOverSystem extends System<[Snake, GameScore]> {
 
       // 清理游戏状态
       if (snakeGameRes.currentGameEntity !== null) {
-        const gameEntity = snakeGameRes.currentGameEntity;
-        this.ecs.despawn(gameEntity);
+        const gameEntity = this.ecs.getEntityById(snakeGameRes.currentGameEntity);
+        if (gameEntity) {
+          this.ecs.despawnRecursive(gameEntity);
+        }
       }
       snakeGameRes.reset();
 

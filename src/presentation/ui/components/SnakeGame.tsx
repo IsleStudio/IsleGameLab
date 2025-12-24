@@ -6,7 +6,7 @@ import { useCurrentScene, useSnakeGame, useSnakeData } from '../hooks';
 import { SnakeUtil } from '../../../gameplay/utils';
 import { Direction } from '../../../gameplay/components/snake';
 import { PlayerStatus } from './PlayerStatus';
-import { SnakeCanvas } from './SnakeCanvas';
+import { PixiCanvas } from './PixiCanvas';
 import { GameOver } from './GameOver';
 
 /**
@@ -101,7 +101,7 @@ export function SnakeGame(): React.ReactElement | null {
 
           {/* 右侧：游戏画布 (11/16) */}
           <div className="flex-1 flex flex-col items-center justify-center p-6">
-            <SnakeCanvas />
+            <PixiCanvas />
             
             {/* 控制提示 */}
             <div className="mt-4 text-center text-gray-400 text-sm">
