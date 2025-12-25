@@ -1,6 +1,6 @@
 import { System } from '../../core/ecs/System';
 import type { Component } from '../../core/ecs/Component';
-import { Snake, Direction, SnakeGameActive,GameScore } from '../components/snake';
+import { Snake, Direction, SnakeGameActive, GameScore } from '../components/snake';
 import { SnakeGameResource } from '../resources/SnakeGameResource';
 import { SnakeDirectionIntent } from '../intents/snake';
 
@@ -23,7 +23,7 @@ export class SnakeMovementSystem extends System<[Snake]> {
     // 检查是否应该移动蛇
     const now = Date.now();
     const config = snakeGameRes.config;
-    
+
     // 遍历所有蛇
     for (const [snake] of components) {
       if (!snake.isAlive) {
@@ -35,7 +35,7 @@ export class SnakeMovementSystem extends System<[Snake]> {
 
       // 计算当前移动间隔（考虑速度倍率）
       const moveInterval = config.initialSpeed / speedMultiplier;
-      
+
       if (now - snakeGameRes.lastMoveTime >= moveInterval) {
         this.moveSnake(snake);
         snakeGameRes.lastMoveTime = now;
@@ -102,24 +102,12 @@ export class SnakeMovementSystem extends System<[Snake]> {
 
     // 在头部添加新段
     snake.segments.unshift(newHead);
-    // #TODO 测试蛇是否正常工作
-    // 打印移动日志
-    console.log('[SnakeMovementSystem] 移动蛇:', {
-      direction: snake.direction,
-      newHead,
-      segments: JSON.parse(JSON.stringify(snake.segments)),
-    });
-    const gameScores = Array.from(this.ecs.getComps(GameScore));
-    if (gameScores.length > 0) {
-      gameScores[0].score += 10;
-    }
-    // 移除尾部（应该在碰撞检测系统中会处理是否吃到食物）
-    // 默认移除尾部，如果吃到食物会在碰撞系统中处理
-    // 移除尾部（正常移动）
-    if (snake.segments.length > 0) {
-      snake.segments.pop();
-    }
 
+    // 标记本帧已移动，让碰撞系统知道需要处理碰撞和尾部移除
+    snake.movedThisFrame = true;
+
+    // 注意：尾部的移除由碰撞系统负责
+    // SnakeCollisionSystem 会检查 movedThisFrame 并在同一帧处理碰撞和尾部移除
   }
 
   /**

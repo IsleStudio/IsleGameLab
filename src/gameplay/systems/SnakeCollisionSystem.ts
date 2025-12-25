@@ -23,24 +23,27 @@ export class SnakeCollisionSystem extends System<[Snake, Food, GameScore]> {
         continue;
       }
 
+      // 只在蛇移动的帧处理碰撞检测
+      // 这样确保移动和碰撞检测的频率一致
+      if (!snake.movedThisFrame) {
+        continue;
+      }
+
       // 安全检查：确保蛇有身体段
       if (!snake.segments || snake.segments.length === 0) {
         console.warn('[SnakeCollisionSystem] 蛇没有身体段，跳过');
+        snake.movedThisFrame = false;
         continue;
       }
 
       const head = snake.segments[0];
+      let shouldRemoveTail = true; // 默认移除尾部
 
       // 检查是否吃到食物
       if (head.x === food.x && head.y === food.y) {
         this.handleFoodCollision(snake, food, score, config.gridWidth, config.gridHeight);
-        continue; // 吃到食物后跳过死亡检测，给玩家一个frame
+        shouldRemoveTail = false; // 吃到食物，不移除尾部，蛇会变长
       }
-      // #TODO 移除尾部（应该在碰撞检测系统中会处理是否吃到食物）目前逻辑被移动到了MovementSystem中
-      // 移除尾部（正常移动）
-      //if (snake.segments.length > 0) {
-      //  snake.segments.pop();
-      //}
 
       // 检查是否撞墙
       if (
@@ -50,17 +53,34 @@ export class SnakeCollisionSystem extends System<[Snake, Food, GameScore]> {
         head.y >= config.gridHeight
       ) {
         this.handleDeath(snake, score, snakeGameRes);
-        continue;
+        snake.movedThisFrame = false; // 清除移动标记
+        continue; // 死亡后不处理尾部
       }
 
       // 检查是否撞到自己（跳过头部）
+      let hitSelf = false;
       for (let i = 1; i < snake.segments.length; i++) {
         const segment = snake.segments[i];
         if (head.x === segment.x && head.y === segment.y) {
           this.handleDeath(snake, score, snakeGameRes);
+          hitSelf = true;
           break;
         }
       }
+
+      // 如果撞到自己，清除标记并跳过尾部处理
+      if (hitSelf) {
+        snake.movedThisFrame = false;
+        continue;
+      }
+
+      // 移除尾部（如果需要）
+      if (shouldRemoveTail && snake.segments.length > 0) {
+        snake.segments.pop();
+      }
+
+      // 清除移动标记，等待下次移动
+      snake.movedThisFrame = false;
     }
   }
 
@@ -77,15 +97,10 @@ export class SnakeCollisionSystem extends System<[Snake, Food, GameScore]> {
     // 增加得分
     score.score += 10;
 
-    // 不移除尾部，蛇变长
-    // （在SnakeMovementSystem中已经添加了新头部）
-
     // 生成新食物
     const newFood = this.spawnFood(gridWidth, gridHeight, snake.segments);
     food.x = newFood.x;
     food.y = newFood.y;
-
-    console.log('[SnakeCollisionSystem] 吃到食物，得分:', score.score);
   }
 
   /**
