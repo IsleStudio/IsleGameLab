@@ -41,3 +41,8 @@ body {
   justify-content: center;
   min-height: 100vh;
 }
+
+/* 自定义宽度 */
+.w-5\/16 {
+  width: 31.25%;
+}

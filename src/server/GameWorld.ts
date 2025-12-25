@@ -1,14 +1,21 @@
 import { ECS } from '../core/ecs/World';
 import { Stage } from '../core/ecs/System';
-import { GameState, UserSession } from '../gameplay/resources';
+import { GameState, UserSession, SnakeGameResource, LeaderboardResource } from '../gameplay/resources';
 import {
   LoginProcessSystem,
   NavigationSystem,
   IntentCleanupSystem,
+  SnakeGameInitSystem,
+  SnakeMovementSystem,
+  SnakeCollisionSystem,
+  GameSpeedSystem,
+  GameOverSystem,
+  PixiRenderSystem,
 } from '../gameplay/systems';
 import { NavigateIntent } from '../gameplay/intents/ui';
 import { StorageManager } from '../core/persistence';
 import { logger, ECSError, ErrorSeverity } from '../lib/errors';
+import { PixiResource } from '../presentation/resources';
 
 /**
  * 游戏世界管理器 - 管理ECS World的生命周期
@@ -70,6 +77,15 @@ export class GameWorld {
       // 注册用户会话资源
       this.ecs.insertResource(new UserSession());
 
+      // 注册蛇游戏资源
+      this.ecs.insertResource(new SnakeGameResource());
+
+      // 注册榜单资源
+      this.ecs.insertResource(new LeaderboardResource());
+
+      // 注册 Pixi 渲染资源
+      this.ecs.insertResource(new PixiResource());
+
       logger.debug('[GameWorld] 资源注册完成');
     } catch (error) {
       const ecsError = new ECSError(
@@ -94,8 +110,27 @@ export class GameWorld {
       // 导航系统 - 处理NavigateIntent
       this.ecs.addSystem(Stage.Update, new NavigationSystem());
 
+      // 蛇游戏初始化系统 - 处理StartSnakeGameIntent和RestartSnakeGameIntent
+      this.ecs.addSystem(Stage.Update, new SnakeGameInitSystem());
+
+      // 蛇移动系统 - 处理蛇的移动
+      this.ecs.addSystem(Stage.Update, new SnakeMovementSystem());
+
+      // 蛇碰撞检测系统 - 处理碰撞
+      this.ecs.addSystem(Stage.Update, new SnakeCollisionSystem());
+
+      // 游戏速度系统 - 更新速度和时间
+      this.ecs.addSystem(Stage.Update, new GameSpeedSystem());
+
+      // 游戏结束系统 - 处理游戏结束
+      this.ecs.addSystem(Stage.Update, new GameOverSystem());
+
       // Intent清理系统 - 在所有业务系统之后清理已处理的Intent
       this.ecs.addSystem(Stage.Update, new IntentCleanupSystem());
+
+      // PostUpdate阶段 - 渲染系统
+      // Pixi 渲染系统 - 使用 Pixi.js 渲染游戏画面
+      this.ecs.addSystem(Stage.PostUpdate, new PixiRenderSystem());
 
       logger.debug('[GameWorld] 系统注册完成');
     } catch (error) {
@@ -178,6 +213,25 @@ export class GameWorld {
       this.ecs.fixedUpdate();
     } catch (error) {
       logger.error('[GameWorld] 固定更新循环出错', error instanceof Error ? error : undefined, {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  /**
+   * 运行渲染更新阶段（PostUpdate）
+   * 用于渲染系统更新，由 Pixi.js Ticker 驱动
+   */
+  public postUpdate(): void {
+    if (!this.isInitialized) {
+      logger.warn('[GameWorld] 未初始化，无法执行渲染更新');
+      return;
+    }
+
+    try {
+      this.ecs.postUpdate();
+    } catch (error) {
+      logger.error('[GameWorld] 渲染更新循环出错', error instanceof Error ? error : undefined, {
         error: error instanceof Error ? error.message : String(error),
       });
     }

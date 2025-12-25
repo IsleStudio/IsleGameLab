@@ -1,3 +1,12 @@
+# 🚫 DEPRECATED - 此文档已整合
+
+> **⚠️ 此文档已被整合到新的文档体系中**
+> 请查看 [DEVELOPMENT.md](../DEVELOPMENT.md) 获取最新的代码规则。
+
+---
+
+以下是原始文档内容，仅供参考：
+
 # 代码审查与规则 (Rules & Checklist)
 
 ## 🚫 禁止事项 (Prohibitions)

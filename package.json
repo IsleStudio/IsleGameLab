@@ -16,8 +16,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@next/swc-win32-x64-msvc": "^16.1.0",
-    "next": "16.1.0",
+    "next": "^16.1.0",
     "pixi.js": "^8.14.3",
     "react": "19.2.3",
     "react-dom": "19.2.3"
@@ -36,9 +35,10 @@
     "eslint-config-next": "16.1.0",
     "fast-check": "^4.5.0",
     "jsdom": "^27.3.0",
+    "lightningcss": "^1.30.2",
     "prettier": "^3.7.4",
     "tailwindcss": "^4",
-    "typescript": "^5",
+    "typescript": "5.9.3",
     "vitest": "^4.0.16"
   }
 }

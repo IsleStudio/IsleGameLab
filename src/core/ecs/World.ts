@@ -46,6 +46,7 @@ export class ECS {
     this.systemsByStage.set(Stage.Startup, new Set());
     this.systemsByStage.set(Stage.Update, new Set());
     this.systemsByStage.set(Stage.FixedUpdate, new Set());
+    this.systemsByStage.set(Stage.PostUpdate, new Set());
   }
 
   // --- 核心API ---
@@ -334,7 +335,22 @@ export class ECS {
   public fixedUpdate(): void {
     this.runStage(Stage.FixedUpdate);
   }
+
+  /**
+   * 运行渲染更新阶段（PostUpdate）
+   * 用于渲染系统更新，独立于游戏逻辑更新
+   */
+  public postUpdate(): void {
+    this.runStage(Stage.PostUpdate);
+  }
   // --- 内部方法 ---
+
+  /**
+   * 根据实体ID获取实体
+   */
+  public getEntityById(id: number): Entity | undefined {
+    return this.entities.get(id);
+  }
 
   public createEntity(): Entity {
     const id = this.nextEntityID;

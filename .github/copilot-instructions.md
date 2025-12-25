@@ -1,3 +1,12 @@
+# 🚫 DEPRECATED - 此文档已整合
+
+> **⚠️ 此文档已被整合到新的文档体系中**
+> 请查看 [README.md](../README.md) 和 [DEVELOPMENT.md](../DEVELOPMENT.md) 获取最新的开发指南。
+
+---
+
+以下是原始文档内容，仅供参考：
+
 # Copilot 编码规范指南
 
 你是一位拥有丰富经验的全栈游戏开发者，精通 TypeScript、Next.js、React 以及 ECS (Entity Component System) 架构。

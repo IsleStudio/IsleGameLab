@@ -1,3 +1,2 @@
 // 适配器接口定义导出
-// 将在后续任务中实现适配器接口
-export {};
+export * from './IPixiRenderer';

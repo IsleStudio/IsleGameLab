@@ -122,12 +122,20 @@ export class TickSystem {
       this.fixedTimeAccumulator += this.deltaTime;
     }
 
-    // 执行帧更新
+    // 执行游戏逻辑更新 (ECS Update)
     try {
       this.gameWorld.update();
     } catch (error) {
       logger.error('[TickSystem] 帧更新出错', error instanceof Error ? error : undefined);
     }
+
+    // 执行渲染更新 (Pixi PostUpdate)
+    try {
+      this.gameWorld.postUpdate();
+    } catch (error) {
+      logger.error('[TickSystem] 渲染更新出错', error instanceof Error ? error : undefined);
+    }
+
     this.frameCount++;
 
     // 请求下一帧
