@@ -4,6 +4,10 @@ import React from 'react';
 import { useECS } from '../bindings';
 import { useUserSession, useCurrentScene } from '../hooks';
 import { UIUtil } from '../../../gameplay/utils';
+import { createLogger } from '../../../lib/logger';
+
+// 创建日志记录器
+const logger = createLogger('MainMenu');
 
 /**
  * MainMenu组件 - 主菜单界面
@@ -14,17 +18,16 @@ export function MainMenu(): React.ReactElement | null {
   const { isLoggedIn, username } = useUserSession();
   const currentScene = useCurrentScene();
 
-  console.log('[MainMenu] 渲染，currentScene:', currentScene, 'isLoggedIn:', isLoggedIn);
+  logger.debug(`渲染 (场景: ${currentScene}, 已登录: ${isLoggedIn})`);
 
   // 仅在main-menu场景显示
   if (currentScene !== 'main-menu') {
-    console.log('[MainMenu] 不在main-menu场景，不渲染');
     return null;
   }
 
   // 处理登录按钮点击
   const handleLoginClick = (): void => {
-    console.log('[MainMenu] 登录按钮被点击');
+    logger.info('用户点击登录按钮');
     UIUtil.requestNavigate(ecs, 'login');
   };
 

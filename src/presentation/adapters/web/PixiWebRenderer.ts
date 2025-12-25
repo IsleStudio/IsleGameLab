@@ -1,5 +1,9 @@
 import { Application, Container, Graphics } from 'pixi.js';
 import type { IPixiRenderer } from '../interfaces/IPixiRenderer';
+import { createLogger } from '../../../lib/logger';
+
+// 创建日志记录器
+const logger = createLogger('PixiWebRenderer');
 
 /**
  * Pixi.js Web 平台渲染器实现
@@ -15,11 +19,13 @@ export class PixiWebRenderer implements IPixiRenderer {
    */
   async initialize(container: HTMLElement, width: number, height: number): Promise<void> {
     if (this.isInitialized) {
-      console.warn('[PixiWebRenderer] 已初始化，跳过');
+      logger.warn('已初始化，跳过');
       return;
     }
 
     try {
+      logger.info(`初始化渲染器 (${width}x${height})`);
+
       // 创建并初始化 Pixi 应用 (Pixi.js v8 方式)
       const app = new Application();
 
@@ -40,7 +46,7 @@ export class PixiWebRenderer implements IPixiRenderer {
       if (canvas instanceof HTMLCanvasElement) {
         container.appendChild(canvas);
       } else {
-        throw new Error('[PixiWebRenderer] 无法获取有效的 canvas 元素');
+        throw new Error('无法获取有效的 canvas 元素');
       }
 
       // 创建游戏容器
@@ -58,8 +64,9 @@ export class PixiWebRenderer implements IPixiRenderer {
       }
 
       this.isInitialized = true;
+      logger.info('渲染器初始化成功');
     } catch (error) {
-      console.error('[PixiWebRenderer] 初始化失败:', error);
+      logger.error('初始化失败', error);
       this.app = null;
       throw error;
     }
@@ -107,9 +114,9 @@ export class PixiWebRenderer implements IPixiRenderer {
 
     try {
       this.app.renderer.resize(width, height);
-      console.debug('[PixiWebRenderer] 调整大小', { width, height });
+      logger.debug(`调整大小 (${width}x${height})`);
     } catch (error) {
-      console.warn('[PixiWebRenderer] 调整大小失败:', error);
+      logger.warn('调整大小失败', error);
     }
   }
 
@@ -120,6 +127,8 @@ export class PixiWebRenderer implements IPixiRenderer {
     if (!this.app) {
       return;
     }
+
+    logger.info('销毁渲染器');
 
     // 立即保存引用并清空，防止重复调用
     const app = this.app;
@@ -135,7 +144,7 @@ export class PixiWebRenderer implements IPixiRenderer {
         app.ticker.stop();
       }
     } catch (error) {
-      console.warn('[PixiWebRenderer] 停止渲染循环失败:', error);
+      logger.warn('停止渲染循环失败', error);
     }
 
     // 清理游戏容器
@@ -144,7 +153,7 @@ export class PixiWebRenderer implements IPixiRenderer {
         app?.stage?.removeChild(gameContainer);
         gameContainer.destroy({ children: true });
       } catch (error) {
-        console.warn('[PixiWebRenderer] 销毁游戏容器失败:', error);
+        logger.warn('销毁游戏容器失败', error);
       }
     }
 
@@ -154,7 +163,7 @@ export class PixiWebRenderer implements IPixiRenderer {
         app.destroy(true);
       }
     } catch (error) {
-      console.error('[PixiWebRenderer] 销毁应用失败:', error);
+      logger.error('销毁应用失败', error);
     }
   }
 
@@ -164,7 +173,7 @@ export class PixiWebRenderer implements IPixiRenderer {
   start(): void {
     if (this.app?.ticker) {
       this.app.ticker.start();
-      console.debug('[PixiWebRenderer] 开始渲染循环');
+      logger.debug('开始渲染循环');
     }
   }
 
@@ -174,7 +183,7 @@ export class PixiWebRenderer implements IPixiRenderer {
   stop(): void {
     if (this.app?.ticker) {
       this.app.ticker.stop();
-      console.debug('[PixiWebRenderer] 停止渲染循环');
+      logger.debug('停止渲染循环');
     }
   }
 
@@ -194,7 +203,7 @@ export class PixiWebRenderer implements IPixiRenderer {
       try {
         cb(delta);
       } catch (error) {
-        console.error('[PixiWebRenderer] 渲染回调出错:', error);
+        logger.error('渲染回调出错', error);
       }
     });
   };

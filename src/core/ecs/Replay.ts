@@ -1,5 +1,6 @@
 import { Intent } from './Intent';
 import { ClassType } from './types';
+import { createLogger } from '../../lib/logger';
 
 // Forward declaration to avoid circular dependency
 interface ECS {
@@ -41,6 +42,9 @@ export interface ReplaySession {
   metadata?: Record<string, any>;
 }
 
+// 创建日志记录器
+const logger = createLogger('IntentRecorder');
+
 /**
  * Intent记录器 - 实现Replay支持
  * 记录所有Intent操作，支持回放验证
@@ -50,7 +54,7 @@ export class IntentRecorder {
   private isRecording: boolean = false;
   private sessionId: string = '';
   private startTime: number = 0;
-  
+
   /** Intent类型注册表 - 用于反序列化 */
   private intentTypes = new Map<string, ClassType<Intent>>();
 
@@ -62,7 +66,7 @@ export class IntentRecorder {
     this.startTime = Date.now();
     this.records = [];
     this.isRecording = true;
-    console.log(`[IntentRecorder] 开始记录会话: ${this.sessionId}`);
+    logger.info(`开始记录会话: ${this.sessionId}`);
   }
 
   /**
@@ -80,7 +84,7 @@ export class IntentRecorder {
         duration: Date.now() - this.startTime
       }
     };
-    console.log(`[IntentRecorder] 停止记录会话: ${this.sessionId}, 共记录${this.records.length}个Intent`);
+    logger.info(`停止记录会话: ${this.sessionId} (共记录 ${this.records.length} 个Intent)`);
     return session;
   }
 
@@ -106,18 +110,21 @@ export class IntentRecorder {
     };
 
     this.records.push(record);
-    console.log(`[IntentRecorder] 记录Intent: ${record.type} at ${record.timestamp}`);
+    logger.debug(`记录Intent: ${record.type} (时间戳: ${record.timestamp})`);
   }
 
   /**
    * 回放Intent序列
    */
   public replay(ecs: ECS, session: ReplaySession): void {
-    console.log(`[IntentRecorder] 开始回放会话: ${session.sessionId}, 共${session.records.length}个Intent`);
-    
+    logger.info(`开始回放会话: ${session.sessionId} (共 ${session.records.length} 个Intent)`);
+
     // 按时间戳排序
     const sortedRecords = [...session.records].sort((a, b) => a.timestamp - b.timestamp);
-    
+
+    let successCount = 0;
+    let errorCount = 0;
+
     for (const record of sortedRecords) {
       try {
         const intent = this.deserializeIntent(record);
@@ -126,14 +133,16 @@ export class IntentRecorder {
           ecs.spawn().insert(intent);
           // 立即处理这个Intent
           ecs.update();
-          console.log(`[IntentRecorder] 回放Intent: ${record.type} at ${record.timestamp}`);
+          successCount++;
+          logger.debug(`回放Intent: ${record.type} (时间戳: ${record.timestamp})`);
         }
       } catch (error) {
-        console.error(`[IntentRecorder] 回放Intent失败: ${record.type}`, error);
+        errorCount++;
+        logger.error(`回放Intent失败: ${record.type}`, error);
       }
     }
-    
-    console.log(`[IntentRecorder] 回放完成`);
+
+    logger.info(`回放完成 (成功: ${successCount}, 失败: ${errorCount})`);
   }
 
   /**
@@ -158,20 +167,20 @@ export class IntentRecorder {
   private deserializeIntent(record: IntentRecord): Intent | null {
     const IntentClass = this.intentTypes.get(record.type);
     if (!IntentClass) {
-      console.warn(`[IntentRecorder] 未找到Intent类型: ${record.type}`);
+      logger.warn(`未找到Intent类型: ${record.type}`);
       return null;
     }
 
     try {
       // 创建Intent实例
       const intent = new IntentClass();
-      
+
       // 恢复属性
       Object.assign(intent, record.data);
-      
+
       return intent;
     } catch (error) {
-      console.error(`[IntentRecorder] 反序列化Intent失败: ${record.type}`, error);
+      logger.error(`反序列化Intent失败: ${record.type}`, error);
       return null;
     }
   }

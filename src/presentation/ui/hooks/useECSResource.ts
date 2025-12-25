@@ -4,6 +4,10 @@ import { useSyncExternalStore, useCallback, useRef } from 'react';
 import { Resource } from '../../../core/ecs/Resource';
 import type { ClassType } from '../../../core/ecs/types';
 import { useECS, useECSSubscription } from '../bindings/ECSProvider';
+import { createLogger } from '../../../lib/logger';
+
+// 创建日志记录器
+const logger = createLogger('useECSResource');
 
 /**
  * useECSResource - 订阅ECS Resource的Hook
@@ -25,17 +29,16 @@ export function useECSResource<T extends Resource>(resourceClass: ClassType<T>):
   // 获取当前Resource快照
   const getResourceSnapshot = useCallback((): T | undefined => {
     const currentSnapshot = getSnapshot();
-    console.log(`[useECSResource] 获取${resourceClass.name}快照，版本:`, currentSnapshot);
 
     // 如果快照版本相同，返回缓存值
     if (cacheRef.current.snapshot === currentSnapshot) {
-      console.log(`[useECSResource] ${resourceClass.name}使用缓存值`);
+      logger.debug(`${resourceClass.name} 使用缓存值`);
       return cacheRef.current.value;
     }
 
     // 获取新值并更新缓存
     const resource = ecs.getResource(resourceClass);
-    console.log(`[useECSResource] ${resourceClass.name}获取新值:`, resource);
+    logger.debug(`${resourceClass.name} 获取新值 (版本: ${currentSnapshot})`);
     cacheRef.current = { snapshot: currentSnapshot, value: resource };
     return resource;
   }, [ecs, resourceClass, getSnapshot]);

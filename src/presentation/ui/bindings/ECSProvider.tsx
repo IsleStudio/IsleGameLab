@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useRef, useCallback, useMemo } from 'react';
 import type { ECS } from '../../../core/ecs';
+import { createLogger } from '../../../lib/logger';
 
 // ECS上下文类型
 interface ECSContextValue {
@@ -14,6 +15,9 @@ interface ECSContextValue {
 // 创建ECS上下文
 const ECSContext = createContext<ECSContextValue | null>(null);
 
+// 创建日志记录器
+const logger = createLogger('ECSSubscriptionManager');
+
 // 订阅管理器 - 用于通知React组件ECS状态变化
 class ECSSubscriptionManager {
   private listeners = new Set<() => void>();
@@ -21,11 +25,11 @@ class ECSSubscriptionManager {
 
   // 订阅状态变化
   subscribe = (callback: () => void): (() => void) => {
-    console.log('[ECSSubscriptionManager] 新订阅者注册，当前总数:', this.listeners.size, '注册后总数:', this.listeners.size + 1);
     this.listeners.add(callback);
+    logger.debug(`订阅者注册 (总数: ${this.listeners.size})`);
     return () => {
-      console.log('[ECSSubscriptionManager] 订阅者取消，当前总数:', this.listeners.size, '取消后总数:', this.listeners.size - 1);
       this.listeners.delete(callback);
+      logger.debug(`订阅者取消 (总数: ${this.listeners.size})`);
     };
   };
 
@@ -36,16 +40,15 @@ class ECSSubscriptionManager {
 
   // 通知所有订阅者状态已变化
   notify = (): void => {
-    console.log('[ECSSubscriptionManager] notify被调用，当前版本:', this.version, '订阅者数量:', this.listeners.size);
     this.version++;
-    console.log('[ECSSubscriptionManager] 版本更新为:', this.version);
-    let index = 0;
+    logger.debug(`通知 ${this.listeners.size} 个订阅者 (版本: ${this.version})`);
     this.listeners.forEach((listener) => {
-      index++;
-      console.log(`[ECSSubscriptionManager] 通知订阅者 ${index}`);
-      listener();
+      try {
+        listener();
+      } catch (error) {
+        logger.error('订阅者回调执行失败', error);
+      }
     });
-    console.log('[ECSSubscriptionManager] 所有订阅者已通知完毕');
   };
 }
 
