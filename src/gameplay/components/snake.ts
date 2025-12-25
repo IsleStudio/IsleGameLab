@@ -31,6 +31,8 @@ export class Snake extends Component {
   public nextDirection: Direction = Direction.Right;
   /** 是否存活 */
   public isAlive: boolean = true;
+  /** 当前帧是否移动过（用于同步移动和碰撞检测） */
+  public movedThisFrame: boolean = false;
 
   public clone(): this {
     const clone = new (this.constructor as new () => this)();
@@ -38,6 +40,7 @@ export class Snake extends Component {
     clone.direction = this.direction;
     clone.nextDirection = this.nextDirection;
     clone.isAlive = this.isAlive;
+    clone.movedThisFrame = this.movedThisFrame;
     return clone;
   }
 }
