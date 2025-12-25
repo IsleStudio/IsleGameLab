@@ -123,11 +123,13 @@ export class PixiRenderSystem extends System {
       : this.animationState.currentSegments;
 
     // 获取或创建 Graphics 对象
-    let graphics = this.snakeGraphics.get(snake.entity.id());
+    let graphics = this.snakeGraphics.get(snake.entity.id);
     if (!graphics) {
-      graphics = new (this.getPixiClass() as any).Graphics();
+      const GraphicsClass = pixiRes.renderer?.getGraphicsClass();
+      if (!GraphicsClass) return;
+      graphics = new GraphicsClass();
       container.addChild(graphics);
-      this.snakeGraphics.set(snake.entity.id(), graphics);
+      this.snakeGraphics.set(snake.entity.id, graphics);
     }
 
     // 清除旧绘制
@@ -167,7 +169,9 @@ export class PixiRenderSystem extends System {
 
     // 获取或创建 Graphics 对象
     if (!this.foodGraphics) {
-      this.foodGraphics = new (this.getPixiClass() as any).Graphics();
+      const GraphicsClass = pixiRes.renderer?.getGraphicsClass();
+      if (!GraphicsClass) return;
+      this.foodGraphics = new GraphicsClass();
       container.addChild(this.foodGraphics);
     }
 
@@ -231,14 +235,6 @@ export class PixiRenderSystem extends System {
         y: prev.y + (seg.y - prev.y) * t,
       };
     });
-  }
-
-  /**
-   * 获取 Pixi 类（用于避免直接导入 pixi.js 导致的构建问题）
-   */
-  private getPixiClass(): any {
-    // 返回一个占位对象，实际使用时通过 renderer 获取
-    return {};
   }
 
   /**

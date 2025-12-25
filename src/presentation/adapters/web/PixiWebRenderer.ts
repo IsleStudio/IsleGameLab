@@ -1,4 +1,4 @@
-import { Application } from 'pixi.js';
+import { Application, Container, Graphics } from 'pixi.js';
 import type { IPixiRenderer } from '../interfaces/IPixiRenderer';
 
 /**
@@ -20,11 +20,10 @@ export class PixiWebRenderer implements IPixiRenderer {
     }
 
     try {
-      // 创建 Pixi 应用
-      this.app = new Application();
+      // 创建并初始化 Pixi 应用 (Pixi.js v8 方式)
+      const app = new Application();
 
-      // 初始化应用
-      await this.app.init({
+      await app.init({
         width,
         height,
         background: '#1a1a1a',
@@ -33,29 +32,35 @@ export class PixiWebRenderer implements IPixiRenderer {
         autoDensity: true,
       });
 
+      // 设置 this.app
+      this.app = app;
+
       // 挂载到 DOM
-      if (this.app.canvas) {
-        container.appendChild(this.app.canvas);
+      const canvas = app.canvas;
+      if (canvas instanceof HTMLCanvasElement) {
+        container.appendChild(canvas);
+      } else {
+        throw new Error('[PixiWebRenderer] 无法获取有效的 canvas 元素');
       }
 
       // 创建游戏容器
-      this.gameContainer = new (this.app as any).Container();
-      if (this.app.stage) {
-        this.app.stage.addChild(this.gameContainer);
+      this.gameContainer = new Container();
+      if (app.stage) {
+        app.stage.addChild(this.gameContainer);
       }
 
       // 启动渲染循环
-      if (this.app.ticker) {
-        this.app.ticker.add((ticker: any) => {
-          const delta = ticker.deltaMS; // 使用 deltaMS 获取毫秒级时间增量
+      if (app.ticker) {
+        app.ticker.add((ticker: any) => {
+          const delta = ticker.deltaMS;
           this.onTick(delta);
         });
       }
 
       this.isInitialized = true;
-      console.log('[PixiWebRenderer] 初始化完成', { width, height });
     } catch (error) {
       console.error('[PixiWebRenderer] 初始化失败:', error);
+      this.app = null;
       throw error;
     }
   }
@@ -65,6 +70,13 @@ export class PixiWebRenderer implements IPixiRenderer {
    */
   getApplication(): any | null {
     return this.app;
+  }
+
+  /**
+   * 获取 Graphics 类
+   */
+  getGraphicsClass(): typeof Graphics {
+    return Graphics;
   }
 
   /**
@@ -79,7 +91,7 @@ export class PixiWebRenderer implements IPixiRenderer {
    */
   createGameContainer(): any {
     if (!this.gameContainer && this.app) {
-      this.gameContainer = new (this.app as any).Container();
+      this.gameContainer = new Container();
       if (this.app.stage) {
         this.app.stage.addChild(this.gameContainer);
       }
@@ -105,22 +117,45 @@ export class PixiWebRenderer implements IPixiRenderer {
    * 销毁渲染器
    */
   destroy(): void {
-    if (!this.app) return;
-
-    this.stop();
-
-    if (this.gameContainer) {
-      this.app.stage?.removeChild(this.gameContainer);
-      this.gameContainer.destroy({ children: true });
-      this.gameContainer = null;
+    if (!this.app) {
+      return;
     }
 
-    // Pixi.js v8 destroy() 不再接受参数
-    this.app.destroy();
+    // 立即保存引用并清空，防止重复调用
+    const app = this.app;
+    const gameContainer = this.gameContainer;
+
     this.app = null;
+    this.gameContainer = null;
     this.isInitialized = false;
 
-    console.log('[PixiWebRenderer] 已销毁');
+    // 停止渲染循环
+    try {
+      if (app?.ticker) {
+        app.ticker.stop();
+      }
+    } catch (error) {
+      console.warn('[PixiWebRenderer] 停止渲染循环失败:', error);
+    }
+
+    // 清理游戏容器
+    if (gameContainer) {
+      try {
+        app?.stage?.removeChild(gameContainer);
+        gameContainer.destroy({ children: true });
+      } catch (error) {
+        console.warn('[PixiWebRenderer] 销毁游戏容器失败:', error);
+      }
+    }
+
+    // 销毁 Pixi 应用
+    try {
+      if (app && typeof app.destroy === 'function') {
+        app.destroy(true);
+      }
+    } catch (error) {
+      console.error('[PixiWebRenderer] 销毁应用失败:', error);
+    }
   }
 
   /**

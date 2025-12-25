@@ -18,6 +18,11 @@ export interface IPixiRenderer {
   getApplication(): any | null;
 
   /**
+   * 获取 Graphics 类
+   */
+  getGraphicsClass(): any;
+
+  /**
    * 获取根容器
    */
   getStage(): any;
